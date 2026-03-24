@@ -37,86 +37,82 @@ Configure Docker runtime and restart Docker daemon.
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 ```
-Test if the installation is successful, you should see something like below.
-```
-docker run --gpus all --rm nvidia/cuda:11.0.3-base-ubuntu20.04 nvidia-smi
-```
-```
-Sat Dec 16 17:27:17 2023       
-+-----------------------------------------------------------------------------+
-| NVIDIA-SMI 525.125.06   Driver Version: 525.125.06   CUDA Version: 12.0     |
-|-------------------------------+----------------------+----------------------+
-| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
-| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
-|                               |                      |               MIG M. |
-|===============================+======================+======================|
-|   0  NVIDIA GeForce ...  Off  | 00000000:01:00.0  On |                  N/A |
-| 24%   50C    P0    40W / 200W |    918MiB /  8192MiB |      3%      Default |
-|                               |                      |                  N/A |
-+-------------------------------+----------------------+----------------------+
-                                                                               
-+-----------------------------------------------------------------------------+
-| Processes:                                                                  |
-|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
-|        ID   ID                                                   Usage      |
-|=============================================================================|
-+-----------------------------------------------------------------------------+
-```
 
-## Launch base autonomy system
+## Run Docker Containers
 
+Clone the workshop repository to your home folder.
+```
+cd ~
+git clone --recurse-submodules <repo_url> iros2026_workshop
+```
 Allow remote X connection.
 ```
 xhost +
 ```
-Pull docker image.
+Go inside the docker folder.
 ```
-docker pull zhangjicmu/ubuntu24_ros:cmu_vla_challenge_simulation
+cd docker
 ```
-For computers **without a Nvidia GPU**, start the container.
+For computers **without a Nvidia GPU**, build and start both containers.
+```bash
+docker compose -f compose.yml up --build -d
 ```
-docker run -it --rm --privileged -e DISPLAY -e QT_X11_NO_MITSHM=1 \
-  -e XAUTHORITY=/tmp/.docker.xauth -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /etc/localtime:/etc/localtime:ro \
-  -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb:rw -v /home/$USER:/home/$USER:rw \
-  --network=host ffd8460079c0 #[IMAGE_ID]
+For computers **with Nvidia GPUs**, use the GPU compose file instead.
+```bash
+docker compose -f compose_gpu.yml up --build -d
 ```
-For computers **with Nvidia GPUs**, start the container with '--gpus all' flags.
+This starts two containers:
+- `iros2026_system` — the base autonomy system (simulator + autonomy stack)
+- `iros2026_ai_module` — the AI module development environment with the updated `dummy_vlm` built in
+
+## Launch base autonomy system
+
+Access the system container.
+```bash
+docker exec -it iros2026_system bash
 ```
-docker run --gpus all -it --rm --privileged -e DISPLAY -e QT_X11_NO_MITSHM=1 \
-  -e XAUTHORITY=/tmp/.docker.xauth -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /etc/localtime:/etc/localtime:ro \
-  -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb:rw -v /home/$USER:/home/$USER:rw \
-  --network=host ffd8460079c0 #[IMAGE_ID]
-```
-Now, launch the base autonomy system.
-```
+Inside the container, launch the base autonomy system.
+```bash
 /home/docker/autonomy_stack_mecanum_wheel_platform/system_simulation.sh
 ```
 
 ## Launch dummy VLM
 
-Pull docker image.
+Access the AI module container.
+```bash
+docker exec -it iros2026_ai_module bash
 ```
-docker pull zhangjicmu/ubuntu24_ros:ai_module
-```
-For computers **without a Nvidia GPU**, start the container.
-```
-docker run -it --rm --privileged -e DISPLAY -e QT_X11_NO_MITSHM=1 \
-  -e XAUTHORITY=/tmp/.docker.xauth -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /etc/localtime:/etc/localtime:ro \
-  -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb:rw -v /home/$USER:/home/$USER:rw \
-  --network=host 1e769f739158 #[IMAGE_ID]
-```
-For computers **with Nvidia GPUs**, start the container with '--gpus all' flags.
-```
-docker run --gpus all -it --rm --privileged -e DISPLAY -e QT_X11_NO_MITSHM=1 \
-  -e XAUTHORITY=/tmp/.docker.xauth -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /etc/localtime:/etc/localtime:ro \
-  -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb:rw -v /home/$USER:/home/$USER:rw \
-  --network=host 1e769f739158 #[IMAGE_ID]
-```
-Now, launch the dummy VLM.
-```
-source /home/docker/ai_module/install/setup.sh
+Inside the container, launch the dummy VLM.
+```bash
 ros2 launch dummy_vlm dummy_vlm.launch
 ```
+The dummy VLM listens on `/challenge_question` (std_msgs/String) and responds based on the question type:
+- Questions starting with **"Find"** or **"find"**: publishes a bounding box marker on `/selected_object_marker` and sends a waypoint to the object on `/way_point_with_heading`.
+- Questions starting with **"How many"** or **"how many"**: publishes a random integer (1–10) on `/numerical_response`.
+- All other questions (navigation): publishes a sequence of waypoints on `/way_point_with_heading`, advancing as the vehicle reaches each one.
+
+To send example questions, open a new terminal, exec into either container, and use `ros2 topic pub`. Both containers share the same ROS2 network via `--network=host`.
+
+Object reference question (triggers marker + object waypoint):
+```bash
+ros2 topic pub --once /challenge_question std_msgs/msg/String "{data: 'Find teal pillow on the sofa farthest from the window'}"
+```
+Numerical question (triggers random integer response):
+```bash
+ros2 topic pub --once /challenge_question std_msgs/msg/String "{data: 'How many books are on the sofa'}"
+```
+Navigation question (triggers sequential waypoint following):
+```bash
+ros2 topic pub --once /challenge_question std_msgs/msg/String "{data: 'Go to the potted plant closest to the pyramid candle holder and stop at the vase between the TV and the door.'}"
+```
+
 You should see the vehicle following waypoints and the selected object being highlighted in RVIZ.
 
+## Integrate your AI model
 
+To replace the dummy VLM with your own model, modify `ai_module/src/dummy_vlm/src/dummyVLM.cpp` and rebuild the Docker image.
+```bash
+cd ~/iros2026_workshop/docker
+docker compose -f compose.yml up --build -d
+```
+Your model must subscribe to `/challenge_question` (std_msgs/msg/String) and publish on the appropriate response topic based on the question type.
