@@ -70,7 +70,11 @@ Examples:
 
 
 ## Setting Up
-First, clone this repo and place it under your local `/home/$USER/` folder.
+First, clone this repo and place it under your local folder.
+
+```
+git clone --recurse-submodules git@github.com:Yuxin916/CMU-VLA-Challenge-2026.git
+```
 
 ### Challenge Scenes
 A total of 18 Unity scenes are used for the challenge. 15 scenes are provided for model development while 3 are held out for testing. The majority of these scenes are single rooms while a few are multi-room buildings.  A set of the training environment models can be downloaded from [here](https://drive.google.com/drive/folders/1bmxdT6Oxzt0_0tohye2br7gqTnkMaq20?usp=share_link). For all of the 15 training scenes, we also provide a processed point cloud of the scene, object and region information including color and size attributes, and referential language statements (please see [Object-Referential Dataset](#object-referential-dataset-vla-3d) for more details). 
@@ -82,13 +86,11 @@ A set of challenge questions for each Unity scene is provided in the pdf files f
 
 ### System
 
-Our system runs on Ubuntu 20.04 and uses ROS Noetic in both simulation and onboard the real robot. Follow the instructions in the [docker/](docker/) folder to try the simulator by pulling the docker image provided and launching the system.
+Our system runs on Ubuntu 24.04 and uses ROS Jazzy in both simulation and onboard the real robot. Follow the instructions in the [docker/](docker/) folder to try the simulator by pulling the docker image provided and launching the system.
 
 The system uses Unity environments by default and has two parts:
-- The base navigation system is in the [system/unity](system/unity/) folder. This system can be launched by itself without the AI module running. For the base navigation system, you may change the scene used by placing it in the [system/unity/src/vehicle_simulator/mesh/unity/](system/unity/src/vehicle_simulator/mesh/unity/) directory.
+- The base navigation system is in the [autonomy_stack_mecanum_wheel_platform](autonomy_stack_mecanum_wheel_platform) folder. This system can be launched by itself without the AI module running. For the base navigation system, you may change the scene used by placing it in the [autonomy_stack_mecanum_wheel_platform/src/base_autonomy/vehicle_simulator/mesh/unity/](autonomy_stack_mecanum_wheel_platform/src/base_autonomy/vehicle_simulator/mesh/unity/) directory.
 - The vision-language model should be in the [ai_module](ai_module/) folder. The model currently in the folder under [ai_module/src](ai_module/src) is a "dummy model" that demonstrates how to read input questions and produces arbitrary examples of the different types of output responses which are to be used by the system and the evaluation node. **Teams are expected to come up with a model to replace this one.**
-
-Launching the system startup script [launch.sh](launch.sh) will, by default, launch both the unity simulator and the dummy model. 
 
 #### Dummy Model
 
@@ -107,10 +109,9 @@ The system provides onboard data to the AI module as shown in the table below:
 | Sensor Scan | ROS PointCloud2 message from the 3D lidar. | 5Hz | sensor_at_scan | `/sensor_scan` |
 | Local Terrain Map | ROS PointCloud2 message from the terrain analysis module around the vehicle. | 5Hz | map | `/terrain_map` (5m around vehicle) <br> `/terrain_map_ext` (20m around vehicle) |
 | Sensor Pose| ROS Odometry message from the state estimation module. | 100-200Hz | from map to sensor | `/state_estimation` |
-| Traversable Area| ROS PointCloud2 message containing the traversable area of the entire environment. | 5Hz | map | `/traversable_area` |
-| Ground-Truth Semantics| ROS MarkerArray message containing object labels and bounding boxes within 2m around the vehicle. | 5Hz | map | `/object_markers` |
 
-**IMPORTANT NOTE**: While more topics may be available from the system, these are the only ones allowed to be used during test time. During training/development, you are free to use whatever information the system simulator provides.
+
+**IMPORTANT NOTE**: While more topics may be available from the system, these are the only ones allowed to be used during test time. During training/development, you are free to use whatever information the system simulator provides. One thing is different that Traversable Area and Ground-truth Semantics will not be provided this year.
 
 #### System Inputs
 
@@ -144,7 +145,7 @@ Note that the simulation system provided a broader scope of data than the actual
 
 To help with the subtask of referential object-grounding, the VLA-3D dataset containing 7.6K indoor 3D scenes with over 11K regions and 9M+ statements is provided. The dataset includes processed scene point clouds, object and region labels, a scene graph of semantic relations, and generated language statements for each 3D scene from a diverse set of data sources and includes the 15 training scenes in Unity. For access to the data and more details on the format, please see our [VLA-3D repository](https://github.com/HaochenZ11/VLA-3D).
 
-## Real-Robot Challenge (2025)
+## Real-Robot Challenge (2026)
 
 Starting in 2025, the final round of challenge evaluation will be done on the real-robot system while initial evaluation rounds are still done in simulation. Similar to the simulator, the system provides onboard data as described below and takes waypoints in the same way as the simulator. The software developed in the AI module is only able to send waypoints to explore the scene. Manually sending waypoints or teleoperation is not allowed. During the final evaluation phase, each team will remotely login to the robot's onboard computer (16x i9 CPU cores, 32GB RAM, RTX 4090 GPU), and set up software in a Docker container that interfaces with the autonomy modules. The Docker container is used by each team alone and not shared with other teams. We will schedule time slots for teams who pass the simulation round to set up the software and test the robot during that phase. The teams can also record data on the robot's onboard computer and this data will be made available to participants afterwards.
 
