@@ -168,7 +168,7 @@ Evaluation is performed by a `challenge_evaluation_node` whose source code is no
 
 | Message | Description | Frequency | ROS Topic Name |
 |-|-|-|-|
-| Challenge Question | ROS Pose2D message with position and orientation. | 1Hz | `/challenge_question` |
+| Challenge Question | ROS String message with detailed question to solve. | 1Hz | `/challenge_question` |
 
 ### Question Types and Initial Scoring
 
