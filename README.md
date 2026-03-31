@@ -142,13 +142,10 @@ Starting in 2025, the final round of challenge evaluation will be done on the re
 
 ### Real-Robot Data
 
-Example scene data collected from the real system is provided [here](https://drive.google.com/drive/folders/1M0_UkY7aDIEpoVK6GdWzg45v-HX2UMSd?usp=drive_link) with some differences in the object layout. The following can be found in the sample data:
+Example scene data collected from the real system is provided [here](https://drive.google.com/drive/folders/1xaatyLeIKLTh_oRzkyd7F1G6tkRPbFtm?usp=sharing) with some differences in the object layout. The following can be found in the sample data:
 
-- `data_view.rviz`: An RVIZ configuration file provided for viewing the data
-- `map.ply`: A ground truth map with object segmentation and IDs
-- `object_list.txt`: Object list with bounding boxes and labels are also provided
-- `system.zip`: Zipped bagfile with ROS messages provided by the system in the same format as during the challenge
-- `readme.txt`: Calibration information and further details about the sample files
+- `data_view.rviz2`: An RVIZ configuration file provided for viewing the data
+- `system_ros2.zip`: Zipped bagfile with ROS messages provided by the system in the same format as during the challenge
 
 Here, the ground truth map and the object list are not provided files during the challenge but shown as a sample of what information can be obtained and processed from the system. The camera pose (camera frame) with respect to the lidar (sensor frame) can be found in the README file included. Further details about the files can be found in the README text file as well.
 
