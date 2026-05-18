@@ -1,5 +1,3 @@
-# CMU-VLN-Challenge
-
 ## Table of Contents
 [Introduction](#introduction)  
 [Objective](#objective)  
