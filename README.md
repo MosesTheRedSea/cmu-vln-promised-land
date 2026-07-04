@@ -21,6 +21,8 @@
 
 [Challenge FAQ](#challenge-faq)
 
+[Moses Adewolu Contributions](#moses-contributions)
+
 ## Introduction
 The CMU Vision-Language-Navigation Challenge leverages computer vision and natural language understanding in navigation autonomy. The challenge aims at pushing the limit of embodied AI in real environments and on real robots - providing a robot platform and a working autonomy system to bring everybody's work a step closer to real-world deployment. The challenge provides a real-robot system equipped with a 3D lidar and a 360 camera. The system has base autonomy onboard that can estimate the sensor pose, analyze the terrain, avoid collisions, and navigate to waypoints. Teams will set up software on the robot's onboard computer to interface with the system and navigate the robot. For 2026, the challenge will be done in a custom simulation environment and move to the real-robot system in the second phase. 
 
@@ -210,6 +212,9 @@ Any questions regarding the challenge can be asked by opening a Github issue wit
 7. How will presentation at the IROS workshop work?
 
    All evaluation will be conducted prior to the IROS conference. The top 3 teams will be contacted with the opportunity to present their method either in-person or remotely.
+
+
+## moses-contributions
 
 ## Acknowledgements
 Thank you to [AlphaZ](https://alpha-z.ai/) for sponsoring the challenge for 2026! Their generous support enables us to provide the top three teams with a cash prize.
